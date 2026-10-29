@@ -1,0 +1,15 @@
+# Bí mật: không bao giờ commit
+.env
+*.pem
+credentials.json
+token.json
+
+# Dữ liệu sinh ra và tài liệu bài giảng (bản quyền của giảng viên)
+out/
+data/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
