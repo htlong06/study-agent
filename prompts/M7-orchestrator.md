@@ -31,7 +31,7 @@ Một lệnh `python -m src.orchestrator` chạy cả chuỗi mỗi sáng, và m
 - Kích hoạt: `schedule` cron `0 0 * * *` (07:00 giờ Việt Nam) và `workflow_dispatch`.
 - `runs-on: ubuntu-latest`, `timeout-minutes: 10`, `permissions: contents: read`, `concurrency` để không chạy chồng.
 - Python 3.11, cache pip, `pip install -r requirements.txt`, chạy `python -m pytest -q` **trước** rồi mới chạy orchestrator.
-- Biến lấy từ Secrets: `CANVAS_BASE_URL`, `CANVAS_TOKEN`, `GEMINI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_JSON`, `DRIVE_FOLDER_ID`, `GOOGLE_CALENDAR_ID`. Không `echo` secrets, không bật chế độ debug in biến môi trường.
+- Biến lấy từ Secrets: `CANVAS_BASE_URL`, `CANVAS_TOKEN`, `GEMINI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` (tuỳ chọn: `GOOGLE_CALENDAR_ID`, `DRIVE_FOLDER_NAME`). Không `echo` secrets, không bật chế độ debug in biến môi trường.
 - Không tải `out/` hay `data/` lên artifact và không commit chúng.
 
 ## Tiêu chí hoàn thành
