@@ -97,10 +97,10 @@ Cách đặt tên test: `test_m3_04_pdf_co_chu` (mã viết thường, gạch d�
 | M5-04 | `put_file` | File được lưu đúng nội dung |
 | M5-05 | `list_names` | Liệt kê đúng các tên |
 | M5-06 | Tên có `/` hoặc `..` | Ném `ValueError` ở cả hai kho |
-| M5-07 | `DriveStore` với service giả | Tạo mới khi chưa có, cập nhật khi đã có (kiểm tra lời gọi `create` và `update`) |
+| M5-07 | `DriveStore` với service giả | Tự tạo thư mục `StudyAgent` khi chưa có và dùng lại khi đã có; tạo file mới khi chưa có, cập nhật khi đã có (kiểm tra lời gọi `create` và `update`) |
 | M5-08 | Service giả trả 429 | Thử lại tối đa 3 lần rồi báo lỗi |
-| M5-09 | Service giả trả 403 hoặc 404 | Lỗi tiếng Việt về việc chưa chia sẻ thư mục, không lộ khoá hay email |
-| M5-10 | `make_store` thiếu hoặc đủ biến; `get_credentials` thiếu biến | Chọn đúng loại kho; không gọi mạng khi tạo `LocalStore`; lỗi rõ ràng khi thiếu biến |
+| M5-09 | Service giả trả 403 hoặc 404; lỗi làm mới token (`invalid_grant`) | Lỗi tiếng Việt nói rõ không truy cập được Drive hoặc cần lấy lại refresh token, không lộ khoá hay token |
+| M5-10 | `make_store` thiếu hoặc đủ ba biến Google; `get_credentials` thiếu biến | Chọn đúng loại kho; không gọi mạng khi tạo kho; lỗi nêu đúng tên biến thiếu |
 
 ## M6a · Bộ xếp lịch (`tests/test_scheduler.py`)
 
@@ -132,7 +132,7 @@ Cách đặt tên test: `test_m3_04_pdf_co_chu` (mã viết thường, gạch d�
 | M6b-07 | Nội dung sự kiện | Tiêu đề `Ôn bài: <môn>`, nhắc trước 15 phút, không chứa email hay token |
 | M6b-08 | Lịch có sự kiện không mang khoá | Không bị sửa hay xóa |
 | M6b-09 | Một phiên bị lỗi API | Phiên đó giữ `null`, phiên khác vẫn được tạo |
-| M6b-10 | Thiếu `GOOGLE_CALENDAR_ID`; 403 và 404; 429 | Lỗi rõ ràng; lỗi tiếng Việt "chưa chia sẻ lịch"; 429 thử lại tối đa 3 lần |
+| M6b-10 | Không đặt `GOOGLE_CALENDAR_ID` (dùng `primary`); 403 và 404; 429 | Dùng `primary`; lỗi tiếng Việt "không truy cập được lịch"; 429 thử lại tối đa 3 lần |
 
 ## M7 · Orchestrator và Actions (`tests/test_orchestrator.py`)
 

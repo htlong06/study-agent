@@ -8,7 +8,7 @@ Bạn là kỹ sư Python. Hãy đọc `CONVENTIONS.md`, `docs/contracts.md` (C5
 
 ## Giả định kỹ thuật (đã chốt)
 
-Dùng tài khoản dịch vụ; người dùng đã chia sẻ lịch với quyền "Thực hiện thay đổi đối với sự kiện". ID lịch (thường là email Gmail của người dùng) nằm trong `GOOGLE_CALENDAR_ID`; **thiếu biến này thì ném lỗi rõ ràng**, không dùng `primary` (vì `primary` của tài khoản dịch vụ là lịch riêng của nó). Scope: `https://www.googleapis.com/auth/calendar.events`.
+Dùng chung OAuth của người dùng với M5 (`get_credentials` đọc `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`), nên không cần chia sẻ lịch cho ai. ID lịch lấy từ `GOOGLE_CALENDAR_ID` nếu có, **mặc định `primary`** (lịch chính của chính người dùng). Scope: `https://www.googleapis.com/auth/calendar.events`.
 
 ## Hàm công khai cần có
 
@@ -31,7 +31,7 @@ def session_key(session: dict) -> str:
 4. `create_events` đặt `extendedProperties.private.studyAgentKey = session_key(...)`. Trước khi tạo, tìm sự kiện cùng khoá (`privateExtendedProperty=studyAgentKey=...`); nếu có thì **tái sử dụng id**, không tạo mới.
 5. Tiêu đề sự kiện: `Ôn bài: <tên môn>`; mô tả tiếng Việt nêu lý do và danh sách bài tập đến hạn nếu có. Nhắc trước 15 phút (`reminders.overrides`). Không đưa token hay email vào mô tả.
 6. Không xóa hay sửa sự kiện nào ngoài những sự kiện có khoá `studyAgentKey`.
-7. Lỗi API: thử lại tối đa 3 lần với 429 và 5xx; 403 và 404 thì ném lỗi tiếng Việt "chưa chia sẻ lịch cho tài khoản dịch vụ".
+7. Lỗi API: thử lại tối đa 3 lần với 429 và 5xx; 403 và 404 thì ném lỗi tiếng Việt "không truy cập được lịch, hãy kiểm tra quyền calendar.events và GOOGLE_CALENDAR_ID". Lỗi làm mới token (`RefreshError`) thì ném lỗi tiếng Việt như M5.
 8. Một phiên lỗi không làm hỏng các phiên khác: phiên đó giữ `calendar_event_id = null` và được ghi log cảnh báo.
 
 ## Tiêu chí hoàn thành
