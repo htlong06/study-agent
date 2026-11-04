@@ -306,7 +306,8 @@ def test_m6b_10_revoked_token_message():
     fake.errors["list"] = [RefreshError("invalid_grant: bad")]
     with pytest.raises(CalendarAccessError) as exc:
         list_busy(service, "primary", START, END)
-    assert "refresh token" in str(exc.value).lower() and "invalid_grant" not in str(exc.value)
+    assert "refresh token" in str(exc.value).lower() and "mã lỗi Google: invalid_grant" in str(exc.value)
+    assert "bad" not in str(exc.value).lower().replace("refresh", "")
 
 
 def test_m6b_make_service_offline(monkeypatch):

@@ -283,8 +283,9 @@ def test_m5_09_refresh_token_revoked(monkeypatch):
     drive.errors["list"] = [RefreshError("invalid_grant: Token has been expired or revoked.")]
     with pytest.raises(StoreError) as exc:
         DriveStore(drive, folder_id="root").list_names()
-    assert "refresh token" in str(exc.value).lower() and "google-setup" in str(exc.value)
-    assert "invalid_grant" not in str(exc.value)
+    msg = str(exc.value)
+    assert "refresh token" in msg.lower() and "google-setup" in msg
+    assert "mã lỗi Google: invalid_grant" in msg and "Token has been expired" not in msg
 
 
 def clear_google_env(monkeypatch):
@@ -371,3 +372,18 @@ def test_m5_live_drive_roundtrip():
     s.put_json("kiem-tra-ket-noi.json", {"ghi_chú": "Tiếng Việt có dấu"})
     assert s.get_json("kiem-tra-ket-noi.json") == {"ghi_chú": "Tiếng Việt có dấu"}
     assert "kiem-tra-ket-noi.json" in s.list_names()
+
+
+@pytest.mark.parametrize("exc, code, hint", [
+    (RefreshError("invalid_client: Unauthorized", {"error": "invalid_client", "error_description": "Unauthorized"}), "invalid_client", "Client secret"),
+    (RefreshError("invalid_grant: Bad Request", {"error": "invalid_grant", "error_description": "Bad Request"}), "invalid_grant", "Client ID khác"),
+    (RefreshError("unauthorized_client: x"), "unauthorized_client", "scope"),
+    (RefreshError("điều gì đó lạ SECRET-123"), None, "hết hạn hoặc bị thu hồi"),
+])
+def test_m5_09_refresh_error_names_google_code_and_fix(exc, code, hint):
+    """M5-09: lỗi làm mới token nêu mã lỗi Google và cách sửa tương ứng, không lộ nội dung lạ."""
+    from src.google_auth import refresh_error_message
+    msg = refresh_error_message(exc)
+    assert hint in msg and "google-setup" in msg
+    assert (f"mã lỗi Google: {code}" in msg) if code else ("mã lỗi" not in msg)
+    assert "SECRET-123" not in msg and "Unauthorized" not in msg and "Bad Request" not in msg

@@ -14,7 +14,7 @@ from googleapiclient.errors import HttpError
 
 from src.config import env
 from src.contracts import validate_plan
-from src.google_auth import SCOPE_CALENDAR, get_credentials
+from src.google_auth import SCOPE_CALENDAR, get_credentials, refresh_error_message
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +27,6 @@ MSG_NO_ACCESS = (
     "Không truy cập được lịch Google. Hãy kiểm tra Calendar API đã bật, quyền calendar.events "
     "đã được cấp và GOOGLE_CALENDAR_ID đúng (docs/google-setup.md)."
 )
-MSG_REFRESH = "Refresh token hết hạn hoặc bị thu hồi, hãy lấy lại theo docs/google-setup.md."
 
 
 class CalendarError(RuntimeError):
@@ -53,8 +52,8 @@ def _execute(request):
     for attempt in range(RETRIES):
         try:
             return request.execute()
-        except RefreshError:
-            raise CalendarAccessError(MSG_REFRESH) from None
+        except RefreshError as err:
+            raise CalendarAccessError(refresh_error_message(err)) from None
         except HttpError as err:
             status = err.resp.status
             raw = err.content if isinstance(err.content, bytes) else str(err.content).encode()

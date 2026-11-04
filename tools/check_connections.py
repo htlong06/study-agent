@@ -49,6 +49,16 @@ def check_canvas() -> tuple[str, str]:
     return OK, f"đọc được {len(courses)} môn học (chỉ đọc)"
 
 
+def gemini_models() -> list[str]:
+    """Tên các model Gemini mà khoá này gọi được generateContent (chỉ đọc danh sách, không in khoá)."""
+    resp = requests.get("https://generativelanguage.googleapis.com/v1beta/models", params={"pageSize": 100},
+                        headers={"x-goog-api-key": env("GEMINI_API_KEY")}, timeout=30)
+    resp.raise_for_status()
+    names = [m["name"].removeprefix("models/") for m in resp.json().get("models", [])
+             if "generateContent" in m.get("supportedGenerationMethods", [])]
+    return sorted(n for n in names if "flash" in n or "lite" in n)
+
+
 def check_llm(name: str) -> tuple[str, str]:
     key_name, fn = llm.PROVIDERS[name]
     if not env(key_name):
@@ -56,10 +66,19 @@ def check_llm(name: str) -> tuple[str, str]:
     try:
         text = fn("Chỉ trả lời đúng một từ: ok", None, False)
     except llm.LLMError as exc:
-        return FAIL, str(exc)
+        detail = str(exc)
+        if name == "gemini" and "404" in detail:
+            detail += f" với model {env('GEMINI_MODEL', llm.DEFAULT_GEMINI_MODEL)}."
+            try:
+                detail += " Model khoá này gọi được: " + (", ".join(gemini_models()[:12]) or "(không có)") + \
+                          ". Đặt một tên trong số đó vào biến GEMINI_MODEL (Settings → Secrets and variables → Actions → Variables)."
+            except (requests.RequestException, ValueError, KeyError) as listing_exc:
+                detail += f" Không liệt kê được model ({listing_exc.__class__.__name__}), kiểm tra GEMINI_API_KEY."
+        return FAIL, detail
     except Exception as exc:  # noqa: BLE001
         return _unexpected(exc)
-    return (OK, "model trả lời bình thường") if text and text.strip() else (FAIL, "model trả về rỗng")
+    model = env("GEMINI_MODEL", llm.DEFAULT_GEMINI_MODEL) if name == "gemini" else name
+    return (OK, f"model {model} trả lời bình thường") if text and text.strip() else (FAIL, "model trả về rỗng")
 
 
 def check_drive() -> tuple[str, str]:

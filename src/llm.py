@@ -8,6 +8,10 @@ import requests
 from .config import env
 
 
+# Các model 2.5 chỉ còn cho tài khoản đã dùng gần đây (khoá mới gặp HTTP 404); đổi bằng biến GEMINI_MODEL.
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
+
+
 class LLMError(RuntimeError):
     pass
 
@@ -33,7 +37,7 @@ def _post(url, headers, body, retries=3):
 
 def _gemini(prompt, system, json_mode):
     key = env("GEMINI_API_KEY")
-    model = env("GEMINI_MODEL", "gemini-2.5-flash")
+    model = env("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
     body = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.4},

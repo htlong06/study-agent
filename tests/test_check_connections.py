@@ -143,3 +143,24 @@ def test_drive_roundtrip_with_fake_store(monkeypatch):
     monkeypatch.setattr(cc, "make_store", lambda: Mem())
     status, detail = cc.check_drive()
     assert status == cc.OK and cc.TEST_FILE in detail
+
+
+def test_gemini_404_lists_usable_models(monkeypatch):
+    """Khoá mới gọi model đã ngừng cấp thì báo rõ model đang dùng và các model khoá gọi được."""
+    monkeypatch.setenv("GEMINI_API_KEY", "KHOA-GEMINI-456")
+
+    def not_found(prompt, system, json_mode):
+        raise cc.llm.LLMError("HTTP 404")
+
+    monkeypatch.setitem(cc.llm.PROVIDERS, "gemini", ("GEMINI_API_KEY", not_found))
+    monkeypatch.setattr(cc, "gemini_models", lambda: ["gemini-3.5-flash-lite", "gemini-3.8-flash"])
+    status, detail = cc.check_llm("gemini")
+    assert status == cc.FAIL and "gemini-3.5-flash-lite" in detail and "gemini-3.8-flash" in detail
+    assert "GEMINI_MODEL" in detail and "KHOA-GEMINI-456" not in detail
+
+    def no_listing():
+        raise requests.ConnectionError("KHOA-GEMINI-456")
+
+    monkeypatch.setattr(cc, "gemini_models", no_listing)
+    status, detail = cc.check_llm("gemini")
+    assert status == cc.FAIL and "ConnectionError" in detail and "KHOA-GEMINI-456" not in detail

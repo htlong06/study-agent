@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 from src.config import env
 from src.contracts import ContractError, validate_quiz
-from src.llm import LLMError, call_llm, parse_json
+from src.llm import DEFAULT_GEMINI_MODEL, LLMError, call_llm, parse_json
 
 log = logging.getLogger(__name__)
 
@@ -132,7 +132,7 @@ def validate_questions(raw: list[dict], sources: dict[str, str]) -> tuple[list[d
 
 def _configured_model() -> str:
     """Tên model của nhà cung cấp đầu tiên có khoá. call_llm không báo nhà cung cấp nào đã trả lời."""
-    models = {"gemini": ("GEMINI_API_KEY", "GEMINI_MODEL", "gemini-2.5-flash"),
+    models = {"gemini": ("GEMINI_API_KEY", "GEMINI_MODEL", DEFAULT_GEMINI_MODEL),
               "groq": ("GROQ_API_KEY", "GROQ_MODEL", "llama-3.3-70b-versatile"),
               "openrouter": ("OPENROUTER_API_KEY", "OPENROUTER_MODEL", "openrouter")}
     for name in (n.strip() for n in env("LLM_ORDER", "gemini,groq,openrouter").split(",")):

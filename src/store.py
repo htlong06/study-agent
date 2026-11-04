@@ -16,7 +16,7 @@ from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload, MediaInMemoryUpload
 
 from src.config import OUT_DIR, env
-from src.google_auth import SCOPE_DRIVE, get_credentials, has_google_config
+from src.google_auth import SCOPE_DRIVE, get_credentials, has_google_config, refresh_error_message
 
 log = logging.getLogger(__name__)
 
@@ -29,7 +29,6 @@ MSG_NO_ACCESS = (
     "Không truy cập được thư mục Drive. Hãy kiểm tra Drive API đã bật, quyền drive.file "
     "đã được cấp, và refresh token còn hiệu lực (docs/google-setup.md)."
 )
-MSG_REFRESH = "Refresh token hết hạn hoặc bị thu hồi, hãy lấy lại theo docs/google-setup.md."
 
 
 class StoreError(RuntimeError):
@@ -118,8 +117,8 @@ class DriveStore:
         for attempt in range(RETRIES):
             try:
                 return request.execute()
-            except RefreshError:
-                raise StoreError(MSG_REFRESH) from None
+            except RefreshError as err:
+                raise StoreError(refresh_error_message(err)) from None
             except HttpError as err:
                 status = err.resp.status
                 retryable = status == 429 or status >= 500 or (status == 403 and _is_rate_limited(err))
